@@ -1,5 +1,7 @@
 import os
 import time
+import subprocess
+import re
 from slackclient import SlackClient
 
 Id = os.environ.get('BID')
@@ -10,7 +12,7 @@ slack_client = SlackClient(os.environ.get('SBT'))
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
     if slack_client.rtm_connect():
-        print("StarterBot connected and running!")
+        print("Connected and running!")
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:
@@ -18,7 +20,6 @@ if __name__ == "__main__":
                 time.sleep(READ_WEBSOCKET_DELAY)
             else:
                 print("Connection failed. Check your Slack token, bot ID, and internet link.")
-
 
 def parse_slack_output(slack_rtm_output):
     """
@@ -33,3 +34,8 @@ def parse_slack_output(slack_rtm_output):
                 # return text after the @ mention, whitespace removed
                 return output['text'].split(AT_BOT)[1].strip().lower(), output['channel']
     return None, None
+
+def handle_command(command, channel):
+    if command.startswith("status"):
+        cmd = re.sub("", '', command).trim()
+        slack_client.api_call("chat.postMesasge", channel=channel, text=response, as_user=True)
